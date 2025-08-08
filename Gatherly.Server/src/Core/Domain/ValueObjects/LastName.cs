@@ -13,22 +13,14 @@ public sealed class LastName : ValueObject<LastName>
         Value = value;
     }
 
-    public string Value { get; } = string.Empty;
+    public string Value { get; }
 
-    public static Result<LastName> Create(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return Result.Failure<LastName>(LastNameErrors.Empty);
-        }
-
-        if (value.Length > MaxLength)
-        {
-            return Result.Failure<LastName>(LastNameErrors.ExceedsMaxLength);
-        }
-
-        return new LastName(value);
-    }
+    public static Result<LastName> Create(string value) =>
+        Result.Ensure(
+            value,
+            (v => !string.IsNullOrWhiteSpace(v), LastNameErrors.Empty),
+            (v => v.Length <= MaxLength, LastNameErrors.ExceedsMaxLength))
+        .Map(v => new LastName(v.Trim()));
 
     protected override IEnumerable<object?> GetEqualityComponents()
     {

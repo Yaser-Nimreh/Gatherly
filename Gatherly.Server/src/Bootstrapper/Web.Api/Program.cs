@@ -1,52 +1,61 @@
 using Application;
 using Infrastructure;
 using Persistence;
-using Persistence.Options;
 using Presentation;
+using Serilog;
+using Web.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services
-    .Scan(
-        selector => selector
-            .FromAssemblies(
-                Infrastructure.AssemblyReference.Assembly,
-                Persistence.AssemblyReference.Assembly)
-            .AddClasses(c => c
-                .Where(t => t != typeof(ConfigureDatabaseOptions)),
-                publicOnly: false)
-            .AsImplementedInterfaces()
-            .WithScopedLifetime());
-
-builder.Services
     .AddApplication()
     .AddPersistence()
-    .AddInfrastructure()
-    .AddPresentation();
+    .AddInfrastructure(builder.Configuration)
+    .AddPresentation()
+    .AddWebApi(builder.Host);
 
-builder.Services.AddSwaggerGen();
+Log.Logger.Information("Application is building...");
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-
-app.UsePersistence();
-
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseDeveloperExceptionPage();
+    var app = builder.Build();
 
-    app.UseSwagger();
+    // Configure the HTTP request pipeline.
 
-    app.UseSwaggerUI();
+    app
+        .UsePersistence(app.Environment)
+        .UseWebApi(app.Environment);
+
+    app.UsePresentation();
+
+    app.UseHttpsRedirection();
+
+    app.UseStaticFiles();
+
+    app.UseRouting();
+
+    app.UseInfrastructure();
+
+    app.MapControllers();
+
+    Log.Logger.Information("Application is running...");
+
+    await app.RunAsync();
+}
+catch (Exception exception)
+{
+    Log.Logger.Error(exception, "Application failed to start...");
+    Console.WriteLine(exception.ToString());
+}
+finally
+{
+    await Log.CloseAndFlushAsync();
 }
 
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+// REMARK: Required for functional and integration tests to work.
+namespace Web.Api
+{
+    public partial class Program;
+}

@@ -1,6 +1,8 @@
 ﻿using Application.Abstractions.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace Web.Api.Middlewares;
 
@@ -8,58 +10,80 @@ public class ExceptionHandlingMiddleware(IApplicationLoggerService<ExceptionHand
 {
     private readonly IApplicationLoggerService<ExceptionHandlingMiddleware> _logger = logger;
 
-    public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
+    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         try
         {
-            await next(httpContext);
+            await next(context);
         }
         catch (DbUpdateException exception)
         {
-            httpContext.Response.ContentType = "application/json";
+            context.Response.ContentType = "application/problem+json";
 
             if (exception.InnerException is SqlException innerException)
             {
                 _logger.LogError(innerException, "Sql Exception");
 
-                switch (innerException.Number)
+                var (statusCode, detail) = innerException.Number switch
                 {
-                    case 2627: // Unique constraint violation
-                        httpContext.Response.StatusCode = StatusCodes.Status409Conflict;
-                        await httpContext.Response.WriteAsync("Unique constraint violation");
-                        break;
-                    case 515: // Cannot insert null
-                        httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-                        await httpContext.Response.WriteAsync("Cannot insert null");
-                        break;
-                    case 547: // Foreign key constraint violation
-                        httpContext.Response.StatusCode = StatusCodes.Status409Conflict;
-                        await httpContext.Response.WriteAsync("Foreign key constraint violation");
-                        break;
-                    default:
-                        httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                        await httpContext.Response.WriteAsync("An error occurred while processing your request.");
-                        break;
-                }
+                    // Unique constraint violation
+                    2627 => (StatusCodes.Status409Conflict, "Unique constraint violation"),
+
+                    // Cannot insert null
+                    515 => (StatusCodes.Status400BadRequest, "Cannot insert null"),
+
+                    // Foreign key constraint violation
+                    547 => (StatusCodes.Status409Conflict, "Foreign key constraint violation"),
+
+                    _ => (StatusCodes.Status500InternalServerError, "An error occurred while processing your request.")
+                };
+
+                var problem = new ProblemDetails
+                {
+                    Title = "Database Error",
+                    Status = statusCode,
+                    Detail = detail,
+                    Instance = context.Request.Path
+                };
+
+                await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
             }
             else
             {
-                _logger.LogError(exception, "Related EFCore Exception");
+                _logger.LogError(exception, "Related EF Core Exception");
 
-                httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-                await httpContext.Response.WriteAsync("An error occurred while saving the entity changes.");
+                context.Response.ContentType = "application/problem+json";
+
+                var problem = new ProblemDetails
+                {
+                    Title = "Database Update Error",
+                    Status = StatusCodes.Status500InternalServerError,
+                    Detail = "An error occurred while saving the entity changes.",
+                    Instance = context.Request.Path
+                };
+
+                await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
             }
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unknown Exception");
 
-            httpContext.Response.ContentType = "application/json";
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-            httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/problem+json";
 
-            await httpContext.Response.WriteAsync("An error occurred: " + exception.Message);
+            var problem = new ProblemDetails
+            {
+                Title = "Unhandled Exception",
+                Status = StatusCodes.Status500InternalServerError,
+                Detail = exception.Message,
+                Instance = context.Request.Path
+            };
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
         }
     }
 }

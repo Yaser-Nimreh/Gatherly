@@ -8,7 +8,7 @@ public static class AttendeeErrors
         "Attendees.AlreadyAttending",
         "The member is already attending this gathering.");
 
-    public static Error NotFound(Guid attendeeId) => Error.NotFound(
+    public static readonly Func<Guid, Error> NotFound = attendeeId => Error.NotFound(
         "Attendees.NotFound",
         $"The attendee with Id = '{attendeeId}' was not found.");
 }

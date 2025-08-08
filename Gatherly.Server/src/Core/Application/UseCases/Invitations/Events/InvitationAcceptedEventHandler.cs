@@ -5,7 +5,7 @@ using Domain.Repositories;
 
 namespace Application.UseCases.Invitations.Events;
 
-public sealed class InvitationAcceptedEventHandler(
+internal sealed class InvitationAcceptedEventHandler(
     IGatheringRepository gatheringRepository,
     IEmailService emailService)
     : IDomainEventHandler<InvitationAcceptedEvent>

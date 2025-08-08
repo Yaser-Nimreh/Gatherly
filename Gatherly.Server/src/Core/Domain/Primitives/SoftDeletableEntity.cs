@@ -2,9 +2,13 @@
 
 namespace Domain.Primitives;
 
-public class SoftDeletableEntity<TId>(TId id) : AuditableEntity<TId>(id), ISoftDeletableEntity where TId : notnull, IEquatable<TId>
+public abstract class SoftDeletableEntity : AuditableEntity, ISoftDeletableEntity
 {
-    public bool IsDeleted { get; private set; } = false;
+    protected SoftDeletableEntity(Guid id) : base(id) { }
+
+    protected SoftDeletableEntity() { }
+
+    public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedById { get; private set; }
     public string? DeletedByName { get; private set; }
@@ -25,5 +29,3 @@ public class SoftDeletableEntity<TId>(TId id) : AuditableEntity<TId>(id), ISoftD
         DeletedByName = null;
     }
 }
-
-public abstract class SoftDeletableEntity(Guid id) : SoftDeletableEntity<Guid>(id), ISoftDeletableEntity;

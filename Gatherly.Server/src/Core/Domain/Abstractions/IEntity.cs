@@ -1,8 +1,6 @@
 ﻿namespace Domain.Abstractions;
 
-public interface IEntity<TId> where TId : notnull, IEquatable<TId>
+public interface IEntity
 {
-    TId Id { get; }
+    Guid Id { get; }
 }
-
-public interface IEntity : IEntity<Guid>;

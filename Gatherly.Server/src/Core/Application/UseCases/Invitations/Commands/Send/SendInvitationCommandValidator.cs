@@ -2,7 +2,7 @@
 
 namespace Application.UseCases.Invitations.Commands.Send;
 
-public sealed class SendInvitationCommandValidator : AbstractValidator<SendInvitationCommand>
+internal sealed class SendInvitationCommandValidator : AbstractValidator<SendInvitationCommand>
 {
     public SendInvitationCommandValidator()
     {

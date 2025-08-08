@@ -4,7 +4,7 @@ namespace Domain.Errors;
 
 public static class InvitationErrors
 {
-    public static Error NotFound(Guid invitationId) => Error.NotFound(
+    public static readonly Func<Guid, Error> NotFound = invitationId => Error.NotFound(
         "Invitations.NotFound",
         $"The invitation with Id = '{invitationId}' was not found.");
 
@@ -23,4 +23,8 @@ public static class InvitationErrors
     public static readonly Error InvalidStatus = Error.Problem(
         "Invitations.InvalidStatus",
         "The invitation has an invalid status for this operation.");
+
+    public static readonly Error FailedToAccept = Error.Failure(
+        "Invitations.FailedToAccept",
+        "The invitation could not be accepted due to an internal error.");
 }

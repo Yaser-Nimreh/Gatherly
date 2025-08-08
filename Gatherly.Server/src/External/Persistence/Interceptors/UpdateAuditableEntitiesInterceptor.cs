@@ -19,24 +19,24 @@ public sealed class UpdateAuditableEntitiesInterceptor : SaveChangesInterceptor
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    private static void UpdateEntities(DbContext? context)
+    private static void UpdateEntities(DbContext? dbContext)
     {
-        if (context == null) return;
+        if (dbContext is null) { return; }
 
-        var entries = context.ChangeTracker.Entries<IAuditableEntity>();
+        var entries = dbContext.ChangeTracker.Entries<IAuditableEntity>();
 
         foreach (var entry in entries)
         {
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
-                entry.Entity.CreatedByName = "System"; // Replace with actual user context
+                entry.Entity.CreatedByName = "System"; // Replace with actual user dbContext
             }
 
             if (entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.HasChangedOwnedEntities())
             {
                 entry.Entity.LastUpdatedAt = DateTime.UtcNow;
-                entry.Entity.LastUpdatedByName = "System"; // Replace with actual user context
+                entry.Entity.LastUpdatedByName = "System"; // Replace with actual user dbContext
             }
         }
     }

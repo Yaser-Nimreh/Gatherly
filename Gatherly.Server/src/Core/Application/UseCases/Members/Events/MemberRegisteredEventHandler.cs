@@ -5,7 +5,7 @@ using Domain.Repositories;
 
 namespace Application.UseCases.Members.Events;
 
-public sealed class MemberRegisteredEventHandler(
+internal sealed class MemberRegisteredEventHandler(
     IMemberRepository memberRepository,
     IEmailService emailService)
     : IDomainEventHandler<MemberRegisteredEvent>

@@ -10,10 +10,10 @@ public class ArchitectureTests
     private const string InfrastructureNamespace = "Infrastructure";
     private const string PersistenceNamespace = "Persistence";
     private const string PresentationNamespace = "Presentation";
-    private const string WebNamespace = "Web";
+    private const string WebApiNamespace = "Web.Api";
 
     [Fact]
-    public void Domain_Should_Not_HaveDependencyOnOtherProjects()
+    public void Domain_Should_NotHaveDependencyOnOtherProjects()
     {
         // Arrange
         var assembly = Domain.AssemblyReference.Assembly;
@@ -22,23 +22,24 @@ public class ArchitectureTests
         {
             ApplicationNamespace,
             InfrastructureNamespace,
+            PersistenceNamespace,
             PresentationNamespace,
-            WebNamespace,
+            WebApiNamespace,
         };
 
         // Act
-        var testResult = Types
+        var result = Types
             .InAssembly(assembly)
             .ShouldNot()
             .HaveDependencyOnAll(otherProjects)
             .GetResult();
 
         // Assert
-        testResult.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue();
     }
 
     [Fact]
-    public void Application_Should_Not_HaveDependencyOnOtherProjects()
+    public void Application_Should_NotHaveDependencyOnOtherProjects()
     {
         // Arrange
         var assembly = Application.AssemblyReference.Assembly;
@@ -46,19 +47,20 @@ public class ArchitectureTests
         var otherProjects = new[]
         {
             InfrastructureNamespace,
+            PersistenceNamespace,
             PresentationNamespace,
-            WebNamespace,
+            WebApiNamespace,
         };
 
         // Act
-        var testResult = Types
+        var result = Types
             .InAssembly(assembly)
             .ShouldNot()
             .HaveDependencyOnAll(otherProjects)
             .GetResult();
 
         // Assert
-        testResult.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue();
     }
 
     [Fact]
@@ -68,7 +70,7 @@ public class ArchitectureTests
         var assembly = Application.AssemblyReference.Assembly;
 
         // Act
-        var testResult = Types
+        var result = Types
             .InAssembly(assembly)
             .That()
             .HaveNameEndingWith("Handler")
@@ -77,11 +79,11 @@ public class ArchitectureTests
             .GetResult();
 
         // Assert
-        testResult.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue();
     }
 
     [Fact]
-    public void Infrastructure_Should_Not_HaveDependencyOnOtherProjects()
+    public void Infrastructure_Should_NotHaveDependencyOnOtherProjects()
     {
         // Arrange
         var assembly = Infrastructure.AssemblyReference.Assembly;
@@ -89,22 +91,46 @@ public class ArchitectureTests
         var otherProjects = new[]
         {
             PresentationNamespace,
-            WebNamespace,
+            WebApiNamespace,
         };
 
         // Act
-        var testResult = Types
+        var result = Types
             .InAssembly(assembly)
             .ShouldNot()
             .HaveDependencyOnAll(otherProjects)
             .GetResult();
 
         // Assert
-        testResult.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue();
     }
 
     [Fact]
-    public void Presentation_Should_Not_HaveDependencyOnOtherProjects()
+    public void Persistence_Should_NotHaveDependencyOnOtherProjects()
+    {
+        // Arrange
+        var assembly = Persistence.AssemblyReference.Assembly;
+
+        var otherProjects = new[]
+        {
+            InfrastructureNamespace,
+            PresentationNamespace,
+            WebApiNamespace,
+        };
+
+        // Act
+        var result = Types
+            .InAssembly(assembly)
+            .ShouldNot()
+            .HaveDependencyOnAll(otherProjects)
+            .GetResult();
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Presentation_Should_NotHaveDependencyOnOtherProjects()
     {
         // Arrange
         var assembly = Presentation.AssemblyReference.Assembly;
@@ -112,18 +138,19 @@ public class ArchitectureTests
         var otherProjects = new[]
         {
             InfrastructureNamespace,
-            WebNamespace,
+            PersistenceNamespace,
+            WebApiNamespace,
         };
 
         // Act
-        var testResult = Types
+        var result = Types
             .InAssembly(assembly)
             .ShouldNot()
             .HaveDependencyOnAll(otherProjects)
             .GetResult();
 
         // Assert
-        testResult.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue();
     }
 
     [Fact]
@@ -133,7 +160,7 @@ public class ArchitectureTests
         var assembly = Presentation.AssemblyReference.Assembly;
 
         // Act
-        var testResult = Types
+        var result = Types
             .InAssembly(assembly)
             .That()
             .HaveNameEndingWith("Controller")
@@ -142,6 +169,6 @@ public class ArchitectureTests
             .GetResult();
 
         // Assert
-        testResult.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue();
     }
 }

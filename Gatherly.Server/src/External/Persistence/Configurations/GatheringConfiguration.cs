@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Persistence.Constants;
 
 namespace Persistence.Configurations;
 
@@ -8,9 +9,11 @@ internal sealed class GatheringConfiguration : IEntityTypeConfiguration<Gatherin
 {
     public void Configure(EntityTypeBuilder<Gathering> builder)
     {
-        builder.ToTable("Gatherings");
+        builder.ToTable(TableNames.Gatherings);
 
         builder.HasKey(gathering => gathering.Id);
+
+        builder.HasQueryFilter(gathering => !gathering.IsDeleted);
 
         builder
             .HasOne(gathering => gathering.Creator)

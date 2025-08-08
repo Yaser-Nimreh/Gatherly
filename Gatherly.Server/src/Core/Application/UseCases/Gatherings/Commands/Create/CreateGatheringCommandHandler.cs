@@ -7,7 +7,7 @@ using Domain.Results;
 
 namespace Application.UseCases.Gatherings.Commands.Create;
 
-public sealed class CreateGatheringCommandHandler(
+internal sealed class CreateGatheringCommandHandler(
     IMemberRepository memberRepository,
     IGatheringRepository gatheringRepository,
     IUnitOfWork unitOfWork) 

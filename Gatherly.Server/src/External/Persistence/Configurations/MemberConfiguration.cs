@@ -2,6 +2,7 @@
 using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Persistence.Constants;
 
 namespace Persistence.Configurations;
 
@@ -9,7 +10,7 @@ internal sealed class MemberConfiguration : IEntityTypeConfiguration<Member>
 {
     public void Configure(EntityTypeBuilder<Member> builder)
     {
-        builder.ToTable("Members");
+        builder.ToTable(TableNames.Members);
 
         builder.HasKey(member => member.Id);
 
@@ -26,7 +27,7 @@ internal sealed class MemberConfiguration : IEntityTypeConfiguration<Member>
         builder
             .Property(member => member.Email)
             .HasConversion(email => email!.Value, value => Email.Create(value).Value)
-            .HasMaxLength(FirstName.MaxLength);
+            .HasMaxLength(Email.MaxLength);
 
         builder.HasIndex(member => member.Email).IsUnique();
     }

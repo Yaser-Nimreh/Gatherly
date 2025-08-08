@@ -1,6 +1,6 @@
 ﻿namespace Domain.Results;
 
-public class Error(string code, string description, ErrorType type) : IEquatable<Error>
+public class Error : IEquatable<Error>
 {
     public static readonly Error None = new(string.Empty, string.Empty, ErrorType.Failure);
     public static readonly Error NullValue = new(
@@ -8,11 +8,20 @@ public class Error(string code, string description, ErrorType type) : IEquatable
         "Null value was provided",
         ErrorType.Failure);
 
-    public string Code { get; } = code;
+    public Error(string code, string description, ErrorType type)
+    {
+        Code = code;
+        Description = description;
+        Type = type;
+    }
 
-    public string Description { get; } = description;
+    private Error() { }
 
-    public ErrorType Type { get; } = type;
+    public string Code { get; } = string.Empty;
+
+    public string Description { get; } = string.Empty;
+
+    public ErrorType Type { get; }
 
     public static Error Failure(string code, string description) =>
         new(code, description, ErrorType.Failure);
@@ -35,7 +44,7 @@ public class Error(string code, string description, ErrorType type) : IEquatable
 
     public bool Equals(Error? other) => other is not null && Code == other.Code && Description == other.Description && Type == other.Type;
 
-    public override bool Equals(object? obj) => obj is not null && obj is Error error && Equals(error);
+    public override bool Equals(object? obj) => obj is Error error && Equals(error);
 
     public override int GetHashCode() => HashCode.Combine(Code, Description, Type);
 

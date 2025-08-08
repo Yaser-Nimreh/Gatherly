@@ -7,7 +7,7 @@ using Domain.ValueObjects;
 
 namespace Application.UseCases.Members.Commands.Register;
 
-public sealed class RegisterMemberCommandHandler(
+internal sealed class RegisterMemberCommandHandler(
     IMemberRepository memberRepository,
     IUnitOfWork unitOfWork)
     : ICommandHandler<RegisterMemberCommand, Guid>

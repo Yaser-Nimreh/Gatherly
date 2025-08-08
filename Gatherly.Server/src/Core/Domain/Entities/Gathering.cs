@@ -28,7 +28,7 @@ public sealed class Gathering : AggregateRoot
         Location = location;
     }
 
-    private Gathering() : base(Guid.Empty) { }
+    private Gathering() : base() { }
 
     public Member? Creator { get; private set; }
     public GatheringType Type { get; private set; }
@@ -69,7 +69,7 @@ public sealed class Gathering : AggregateRoot
 
         var gathering = gatheringResult.Value;
 
-        gathering.Raise(new GatheringCreatedEvent(gathering.Id));
+        gathering.Raise(new GatheringCreatedEvent(Guid.NewGuid(), gathering.Id));
 
         return gathering;
     }
@@ -143,7 +143,7 @@ public sealed class Gathering : AggregateRoot
 
         var attendee = invitation.Accept();
 
-        Raise(new InvitationAcceptedEvent(invitation.Id, Id));
+        Raise(new InvitationAcceptedEvent(Guid.NewGuid(), invitation.Id, Id));
 
         _attendees.Add(attendee);
 

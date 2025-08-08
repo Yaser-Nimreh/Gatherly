@@ -23,7 +23,7 @@ public sealed class Attendee : IAuditableEntity, ISoftDeletableEntity
     public string? LastUpdatedByName { get; set; }
     public string ItemType => GetType().Name;
 
-    public bool IsDeleted { get; private set; } = false;
+    public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedById { get; private set; }
     public string? DeletedByName { get; private set; }

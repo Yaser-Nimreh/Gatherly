@@ -1,5 +1,5 @@
-﻿using Domain.Abstractions;
+﻿using Domain.Primitives;
 
 namespace Domain.Events.Gatherings;
 
-public sealed record GatheringCreatedEvent(Guid GatheringId) : IDomainEvent;
+public sealed record GatheringCreatedEvent(Guid Id, Guid GatheringId) : DomainEvent(Id);

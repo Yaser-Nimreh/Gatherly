@@ -15,7 +15,7 @@ internal sealed class ValidationBehavior<TCommand, TResponse>(
     private readonly IEnumerable<IValidator<TCommand>> _validators = validators;
 
     public async Task<TResponse> Handle(
-        TCommand command,
+        TCommand request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
@@ -24,7 +24,7 @@ internal sealed class ValidationBehavior<TCommand, TResponse>(
             return await next(cancellationToken);
         }
 
-        var context = new ValidationContext<TCommand>(command);
+        var context = new ValidationContext<TCommand>(request);
 
         ValidationResult[] validationResults = await Task.WhenAll(
             _validators.Select(validator => validator.ValidateAsync(context, cancellationToken)));

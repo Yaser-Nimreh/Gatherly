@@ -2,40 +2,39 @@
 
 namespace Domain.Primitives;
 
-public abstract class Entity<TId>(TId id) : IEntity<TId>, IEquatable<Entity<TId>> where TId : notnull, IEquatable<TId>
+public abstract class Entity : IEntity, IEquatable<Entity>
 {
-    public TId Id { get; private init; } = id;
+    protected Entity(Guid id) => Id = id;
 
-    public static bool operator ==(Entity<TId>? first, Entity<TId>? second) =>
+    protected Entity() { }
+
+    public Guid Id { get; private init; }
+
+    public static bool operator ==(Entity? first, Entity? second) =>
         first is not null && second is not null && first.Equals(second);
 
-    public static bool operator !=(Entity<TId>? first, Entity<TId>? second) =>
+    public static bool operator !=(Entity? first, Entity? second) =>
         !(first == second);
 
-    public bool Equals(Entity<TId>? other)
+    public bool Equals(Entity? other)
     {
         if (other is null || other.GetType() != GetType())
+        {
             return false;
+        }
 
-        if (ReferenceEquals(this, other))
-            return true;
-
-        return EqualityComparer<TId>.Default.Equals(Id, other.Id);
+        return other.Id == Id;
     }
 
     public override bool Equals(object? obj)
     {
         if (obj is null || obj.GetType() != GetType())
+        {
             return false;
+        }
 
-        if (ReferenceEquals(this, obj))
-            return true;
-
-        return obj is Entity<TId> entity &&
-               EqualityComparer<TId>.Default.Equals(Id, entity.Id);
+        return obj is Entity entity && entity.Id == Id;
     }
 
     public override int GetHashCode() => HashCode.Combine(GetType(), Id);
 }
-
-public abstract class Entity(Guid id) : Entity<Guid>(id), IEntity;

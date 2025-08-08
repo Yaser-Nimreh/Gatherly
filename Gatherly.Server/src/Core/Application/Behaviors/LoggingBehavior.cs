@@ -1,19 +1,19 @@
-﻿using Domain.Primitives;
+﻿using Application.Abstractions.Services;
+using Domain.Primitives;
 using Domain.Results;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Serilog.Context;
 using System.Diagnostics;
 
 namespace Application.Behaviors;
 
 public sealed class LoggingBehavior<TRequest, TResponse>(
-    ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+    IApplicationLoggerService<LoggingBehavior<TRequest, TResponse>> logger)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
     where TResponse : Result
 {
-    private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger = logger;
+    private readonly IApplicationLoggerService<LoggingBehavior<TRequest, TResponse>> _logger = logger;
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
@@ -69,13 +69,13 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
         var interfaces = requestType.GetInterfaces();
 
         if (interfaces.Any(i =>
-                i.IsGenericType && i.GetGenericTypeDefinition().Name.StartsWith("ICommand")))
+                i.IsGenericType && i.GetGenericTypeDefinition().Name.StartsWith("ICommand", StringComparison.Ordinal)))
         {
             return "command";
         }
 
         if (interfaces.Any(i =>
-                i.IsGenericType && i.GetGenericTypeDefinition().Name.StartsWith("IQuery")))
+                i.IsGenericType && i.GetGenericTypeDefinition().Name.StartsWith("IQuery", StringComparison.Ordinal)))
         {
             return "query";
         }
@@ -83,7 +83,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
         return "request";
     }
 
-    private static bool IsLoggableType(Type type)
+    public static bool IsLoggableType(Type type)
     {
         return
             type.IsPrimitive

@@ -2,8 +2,12 @@
 
 namespace Domain.Primitives;
 
-public abstract class AggregateRoot<TId>(TId id) : SoftDeletableEntity<TId>(id), IAggregateRoot where TId : notnull, IEquatable<TId>
+public abstract class AggregateRoot : SoftDeletableEntity, IAggregateRoot
 {
+    protected AggregateRoot(Guid id) : base(id) { }
+
+    protected AggregateRoot() { }
+
     private readonly List<IDomainEvent> _domainEvents = [];
     public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
@@ -11,5 +15,3 @@ public abstract class AggregateRoot<TId>(TId id) : SoftDeletableEntity<TId>(id),
 
     public void Raise(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
 }
-
-public abstract class AggregateRoot(Guid id) : AggregateRoot<Guid>(id), IAggregateRoot;

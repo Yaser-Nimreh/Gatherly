@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Application.UseCases.Members.Commands.Register;
 
-public sealed class RegisterMemberCommandValidator : AbstractValidator<RegisterMemberCommand>
+internal sealed class RegisterMemberCommandValidator : AbstractValidator<RegisterMemberCommand>
 {
     public RegisterMemberCommandValidator()
     {
@@ -17,6 +17,7 @@ public sealed class RegisterMemberCommandValidator : AbstractValidator<RegisterM
 
         RuleFor(member => member.Email)
             .NotEmpty().WithMessage("Email is required.")
+            .MaximumLength(Email.MaxLength).WithMessage($"Email must not exceed {Email.MaxLength} characters.")
             .EmailAddress().WithMessage("Invalid email format.");
     }
 }

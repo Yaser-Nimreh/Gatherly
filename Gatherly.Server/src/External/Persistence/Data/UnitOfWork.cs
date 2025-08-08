@@ -1,6 +1,10 @@
 ﻿using Domain.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
+using Newtonsoft.Json;
+using Persistence.Outbox;
+using System.Data;
 
 namespace Persistence.Data;
 
@@ -34,8 +38,75 @@ internal sealed class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
         }
     }
 
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
-        _dbContext.SaveChangesAsync(cancellationToken);
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        ConvertDomainEventsToOutboxMessages();
+
+        UpdateAuditableEntities();
+
+        return await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private void ConvertDomainEventsToOutboxMessages()
+    {
+        var aggregateRoots = _dbContext.ChangeTracker
+            .Entries<IAggregateRoot>()
+            .Where(a => a.Entity.DomainEvents.Count != 0)
+            .Select(a => a.Entity)
+            .ToList();
+
+        var domainEvents = aggregateRoots
+            .SelectMany(a => a.DomainEvents)
+            .ToList();
+
+        aggregateRoots.ToList().ForEach(a => a.ClearDomainEvents());
+
+        var outboxMessages = new List<OutboxMessage>();
+
+        foreach (var domainEvent in domainEvents)
+        {
+            var outboxMessage = new OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                OccurredOn = DateTime.UtcNow,
+                Type = domainEvent.GetType().Name!,
+                Content = JsonConvert.SerializeObject(
+                    domainEvent,
+                    new JsonSerializerSettings
+                    {
+                        TypeNameHandling = TypeNameHandling.All,
+                        TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+                    })
+            };
+
+            outboxMessages.Add(outboxMessage);
+        }
+
+        if (outboxMessages.Count != 0)
+        {
+            _dbContext.Set<OutboxMessage>().AddRange(outboxMessages);
+        }
+    }
+
+    private void UpdateAuditableEntities()
+    {
+        var entries = _dbContext.ChangeTracker.Entries<IAuditableEntity>();
+
+        foreach (var entry in entries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.CreatedByName = "System"; // Replace with actual user dbContext
+            }
+
+            if (entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.HasChangedOwnedEntities())
+            {
+                entry.Entity.LastUpdatedAt = DateTime.UtcNow;
+                entry.Entity.LastUpdatedByName = "System"; // Replace with actual user dbContext
+            }
+        }
+    }
 
     public async Task ExecuteWithTransactionAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken = default)
     {
@@ -50,4 +121,13 @@ internal sealed class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
             await transaction.CommitAsync(cancellationToken);
         });
     }
+}
+
+public static class UnitOfWorkExtensions
+{
+    public static bool HasChangedOwnedEntities(this EntityEntry entry) =>
+        entry.References.Any(r =>
+            r.TargetEntry != null &&
+            r.TargetEntry.Metadata.IsOwned() &&
+            (r.TargetEntry.State == EntityState.Added || r.TargetEntry.State == EntityState.Modified));
 }

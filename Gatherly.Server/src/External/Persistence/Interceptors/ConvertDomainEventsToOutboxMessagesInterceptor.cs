@@ -20,11 +20,11 @@ public sealed class ConvertDomainEventsToOutboxMessagesInterceptor : SaveChanges
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    private static void ConvertDomainEventsToOutboxMessages(DbContext? context)
+    private static void ConvertDomainEventsToOutboxMessages(DbContext? dbContext)
     {
-        if (context == null) return;
+        if (dbContext is null) { return; }
 
-        var aggregateRoots = context.ChangeTracker
+        var aggregateRoots = dbContext.ChangeTracker
             .Entries<IAggregateRoot>()
             .Where(a => a.Entity.DomainEvents.Count != 0)
             .Select(a => a.Entity)
@@ -59,7 +59,7 @@ public sealed class ConvertDomainEventsToOutboxMessagesInterceptor : SaveChanges
 
         if (outboxMessages.Count != 0)
         {
-            context.Set<OutboxMessage>().AddRange(outboxMessages);
+            dbContext.Set<OutboxMessage>().AddRange(outboxMessages);
         }
     }
 }

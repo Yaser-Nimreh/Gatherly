@@ -9,7 +9,7 @@ using Domain.Results;
 
 namespace Application.UseCases.Gatherings.Queries.GetById;
 
-public sealed class GetGatheringByIdQueryHandler(IGatheringRepository gatheringRepository)
+internal sealed class GetGatheringByIdQueryHandler(IGatheringRepository gatheringRepository)
     : IQueryHandler<GetGatheringByIdQuery, GatheringResponse>
 {
     private readonly IGatheringRepository _gatheringRepository = gatheringRepository;

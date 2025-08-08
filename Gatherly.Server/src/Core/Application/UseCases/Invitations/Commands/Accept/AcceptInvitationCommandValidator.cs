@@ -2,7 +2,7 @@
 
 namespace Application.UseCases.Invitations.Commands.Accept;
 
-public sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptInvitationCommand>
+internal sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptInvitationCommand>
 {
     public AcceptInvitationCommandValidator()
     {

@@ -7,7 +7,7 @@ using Domain.Results;
 
 namespace Application.UseCases.Invitations.Commands.Accept;
 
-public sealed class AcceptInvitationCommandHandler(
+internal sealed class AcceptInvitationCommandHandler(
     IGatheringRepository gatheringRepository,
     IAttendeeRepository attendeeRepository,
     IUnitOfWork unitOfWork)
@@ -44,16 +44,27 @@ public sealed class AcceptInvitationCommandHandler(
             };
         }
 
-        var attendeeResult = gathering.AcceptInvitation(invitation);
+        await _unitOfWork.BeginTransactionAsync();
 
-        if (attendeeResult.IsSuccess)
+        try
         {
-            var attendee = attendeeResult.Value;
-            _attendeeRepository.Add(attendee);
+            var attendeeResult = gathering.AcceptInvitation(invitation);
+
+            if (attendeeResult.IsSuccess)
+            {
+                var attendee = attendeeResult.Value;
+                _attendeeRepository.Add(attendee);
+            }
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.CommitTransactionAsync();
+
+            return Result.Success();
         }
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return Result.Success();
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            return Result.Failure(InvitationErrors.FailedToAccept);
+        }
     }
 }

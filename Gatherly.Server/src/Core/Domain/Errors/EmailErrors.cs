@@ -8,6 +8,10 @@ public static class EmailErrors
         "Email.Empty",
         "Email cannot be null or empty.");
 
+    public static readonly Error ExceedsMaxLength = Error.Failure(
+        "Email.ExceedsMaxLength",
+        "Email cannot exceed 50 characters.");
+
     public static readonly Error InvalidFormat = Error.Failure(
         "Email.InvalidFormat",
         "Email format is invalid.");

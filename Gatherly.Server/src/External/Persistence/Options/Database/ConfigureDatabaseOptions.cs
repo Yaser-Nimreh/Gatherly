@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
-namespace Persistence.Options;
+namespace Persistence.Options.Database;
 
 public sealed class ConfigureDatabaseOptions(IConfiguration configuration) : IConfigureOptions<DatabaseOptions>
 {

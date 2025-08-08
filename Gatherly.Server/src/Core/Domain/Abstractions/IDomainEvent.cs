@@ -2,4 +2,7 @@
 
 namespace Domain.Abstractions;
 
-public interface IDomainEvent : INotification;
+public interface IDomainEvent : INotification
+{
+    Guid Id { get; init; }
+}

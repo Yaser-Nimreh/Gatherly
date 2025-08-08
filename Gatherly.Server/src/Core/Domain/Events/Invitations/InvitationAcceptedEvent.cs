@@ -1,5 +1,5 @@
-﻿using Domain.Abstractions;
+﻿using Domain.Primitives;
 
 namespace Domain.Events.Invitations;
 
-public sealed record InvitationAcceptedEvent(Guid InvitationId, Guid GatheringId) : IDomainEvent;
+public sealed record InvitationAcceptedEvent(Guid Id, Guid InvitationId, Guid GatheringId) : DomainEvent(Id);

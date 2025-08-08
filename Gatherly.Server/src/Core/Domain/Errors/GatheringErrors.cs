@@ -12,7 +12,7 @@ public static class GatheringErrors
         "Gatherings.InvitationsValidBeforeInHoursIsRequired",
         "Invitations valid before in hours is required for gatherings with invitation expiration.");
 
-    public static Error NotFound(Guid gatheringId) => Error.NotFound(
+    public static readonly Func<Guid, Error> NotFound = gatheringId => Error.NotFound(
         "Gatherings.NotFound",
         $"The gathering with Id = '{gatheringId}' was not found.");
 
